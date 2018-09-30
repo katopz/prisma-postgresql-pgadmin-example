@@ -1,0 +1,52 @@
+version: '3'
+services:
+  prisma:
+    image: prismagraphql/prisma:1.17
+    restart: always
+    ports:
+      - "${PRISMA_PORT:-4466}:${PRISMA_PORT:-4466}"
+    env_file: .env
+    environment:
+      PRISMA_CONFIG: |
+        port: 4466
+        databases:
+          default:
+            connector: postgres
+            host: postgres
+            port: "${PRISMA_DB_PORT:-5432}"
+            user: ${POSTGRES_USER:-prisma}
+            password: ${POSTGRES_PASSWORD:-prisma}
+            migrations: true
+    networks:
+      - back
+  postgres:
+    image: postgres:10.5
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-prisma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-prisma}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - back
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    env_file: .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-prisma}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-prisma}
+      # PGADMIN_ENABLE_TLS: 1
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+      # TLS
+      # - "${PGADMIN_PORT:-5443}:8443"
+    networks:
+      - back
+
+volumes:
+  postgres:
+
+networks:
+  back:
